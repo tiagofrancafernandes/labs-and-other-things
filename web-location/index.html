@@ -1,6 +1,9 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Battle Royale Concept</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
@@ -17,47 +20,55 @@
     Shrink time (seconds): <input type="number" id="shrinkTime" value="10"><br>
     <button onclick="startTracking()">Start Tracking</button>
     <button onclick="stopTracking()">Stop Tracking</button><br>
+
+    <pre data-element-id="log-container" style="width: 100%; height: 100px; overflow-y: scroll;"></pre>
+
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script>
-      console.clear(); //
-      
-//         const map = L.map('map').setView([51.505, -0.09], 13);
+        function logMessage(message = '') {
+            let logContainer = document.querySelector('[data-element-id="log-container"]');
+
+            if (!logContainer) {
+                return;
+            }
+
+            let isoDate = (new Date()).toISOString();
+            logContainer.innerHTML = `[${isoDate}] ${message}\n${logContainer.innerHTML}`;
+        }
+
+        console.clear(); //
         let circle;
-        let radius = 500;
+
+        // Definir raio em metros
+        let radius = 1000; // 1 km
         let userMarker;
         let trackingId;
         let health = 100;
 
-//         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//             maxZoom: 19,
-//         }).addTo(map);
-      
-      let latitude = '-6.486709';
-      let longitude = '-35.296471';
-      let zoom = 18;
-      
-      // Criar mapa
-      var map = L.map('map').setView([latitude, longitude], zoom);
+        let latitude = '-6.486709';
+        let longitude = '-35.296471';
+        let zoom = 13;
 
-      // Adicionar camada de mapa
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-          maxZoom: 18,
-      }).addTo(map);
+        // Criar mapa
 
-      // Criar ponto central
-      var center = L.latLng(latitude, longitude);
+        const map = L.map('map').setView([latitude, longitude], zoom);
 
-      // Definir raio em metros
-      radius = 1000; // 1 km
+        // Adicionar camada de mapa
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
 
-      // Criar círculo
-      circle = L.circle(center, {
-          radius: radius,
-      }).addTo(map);
+        // Criar ponto central
+        var center = L.latLng(latitude, longitude);
+
+        // Criar círculo
+        circle = L.circle(center, {
+            radius: radius,
+        }).addTo(map);
 
         map.on('click', function(e) {
             placeCircle(e.latlng, map);
@@ -91,7 +102,7 @@
                     if (radius > 0) {
                         circle.setRadius(radius);
                     } else {
-                        console.log('Circle has fully shrunk!');
+                        logMessage('Circle has fully shrunk!');
                         clearInterval(intervalId);
                     }
                 }, 1000);
@@ -106,7 +117,7 @@
                     maximumAge: 0
                 });
             } else {
-                console.log("Geolocation is not supported by this browser.");
+                logMessage("Geolocation is not supported by this browser.");
             }
         }
 
@@ -139,7 +150,7 @@
                 health -= 1;
 
                 if (health <= 0) {
-                    console.log('You are dead!');
+                    logMessage('You are dead!');
                     stopTracking();
                 }
             }
@@ -148,16 +159,16 @@
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    console.log("User denied the request for Geolocation.");
+                    logMessage("User denied the request for Geolocation.");
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    console.log("Location information is unavailable.");
+                    logMessage("Location information is unavailable.");
                     break;
                 case error.TIMEOUT:
-                    console.log("The request to get user location timed out.");
+                    logMessage("The request to get user location timed out.");
                     break;
                 case error.UNKNOWN_ERROR:
-                    console.log("An unknown error occurred.");
+                    logMessage("An unknown error occurred.");
                     break;
             }
         }
