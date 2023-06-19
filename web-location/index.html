@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 
 <head>
@@ -23,16 +22,42 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
     <script>
-        const map = L.map('map').setView([51.505, -0.09], 13);
+      console.clear(); //
+      
+//         const map = L.map('map').setView([51.505, -0.09], 13);
         let circle;
         let radius = 500;
         let userMarker;
         let trackingId;
         let health = 100;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(map);
+//         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//             maxZoom: 19,
+//         }).addTo(map);
+      
+      let latitude = '-6.486709';
+      let longitude = '-35.296471';
+      let zoom = 18;
+      
+      // Criar mapa
+      var map = L.map('map').setView([latitude, longitude], zoom);
+
+      // Adicionar camada de mapa
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+          maxZoom: 18,
+      }).addTo(map);
+
+      // Criar ponto central
+      var center = L.latLng(latitude, longitude);
+
+      // Definir raio em metros
+      radius = 1000; // 1 km
+
+      // Criar círculo
+      circle = L.circle(center, {
+          radius: radius,
+      }).addTo(map);
 
         map.on('click', function(e) {
             placeCircle(e.latlng, map);
@@ -66,7 +91,7 @@
                     if (radius > 0) {
                         circle.setRadius(radius);
                     } else {
-                        alert('Circle has fully shrunk!');
+                        console.log('Circle has fully shrunk!');
                         clearInterval(intervalId);
                     }
                 }, 1000);
@@ -81,7 +106,7 @@
                     maximumAge: 0
                 });
             } else {
-                alert("Geolocation is not supported by this browser.");
+                console.log("Geolocation is not supported by this browser.");
             }
         }
 
@@ -114,7 +139,7 @@
                 health -= 1;
 
                 if (health <= 0) {
-                    alert('You are dead!');
+                    console.log('You are dead!');
                     stopTracking();
                 }
             }
@@ -123,16 +148,16 @@
         function showError(error) {
             switch (error.code) {
                 case error.PERMISSION_DENIED:
-                    alert("User denied the request for Geolocation.");
+                    console.log("User denied the request for Geolocation.");
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    alert("Location information is unavailable.");
+                    console.log("Location information is unavailable.");
                     break;
                 case error.TIMEOUT:
-                    alert("The request to get user location timed out.");
+                    console.log("The request to get user location timed out.");
                     break;
                 case error.UNKNOWN_ERROR:
-                    alert("An unknown error occurred.");
+                    console.log("An unknown error occurred.");
                     break;
             }
         }
