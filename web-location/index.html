@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Battle Royale Concept</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
+    <style>
+        #map {
+            height: 80vh;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    Radius (meters): <input type="number" id="radius" value="500"><br>
+    Shrink time (seconds): <input type="number" id="shrinkTime" value="10"><br>
+    <button onclick="startTracking()">Start Tracking</button>
+    <button onclick="stopTracking()">Stop Tracking</button><br>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+    <script>
+        const map = L.map('map').setView([51.505, -0.09], 13);
+        let circle;
+        let radius = 500;
+        let userMarker;
+        let trackingId;
+        let health = 100;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        map.on('click', function(e) {
+            placeCircle(e.latlng, map);
+        });
+
+        function placeCircle(location) {
+            if (circle != null) {
+                map.removeLayer(circle);
+            }
+
+            radius = parseInt(document.getElementById('radius').value);
+
+            circle = L.circle(location, {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: radius
+            }).addTo(map);
+
+            shrinkCircle();
+        }
+
+        function shrinkCircle() {
+            if (circle != null) {
+                const shrinkTime = parseInt(document.getElementById('shrinkTime').value);
+                const shrinkRate = radius / shrinkTime;
+
+                const intervalId = setInterval(function() {
+                    radius -= shrinkRate;
+
+                    if (radius > 0) {
+                        circle.setRadius(radius);
+                    } else {
+                        alert('Circle has fully shrunk!');
+                        clearInterval(intervalId);
+                    }
+                }, 1000);
+            }
+        }
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                trackingId = navigator.geolocation.watchPosition(showPosition, showError, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function stopTracking() {
+            if (trackingId) {
+                navigator.geolocation.clearWatch(trackingId);
+                trackingId = null;
+            }
+        }
+
+        function showPosition(position) {
+            if (userMarker != null) {
+                map.removeLayer(userMarker);
+            }
+
+            const userPosition = [position.coords.latitude, position.coords.longitude];
+
+            userMarker = L.marker(userPosition, {
+                icon: L.AwesomeMarkers.icon({
+                    icon: 'heartbeat',
+                    prefix: 'fa',
+                    markerColor: 'blue'
+                })
+            }).addTo(map);
+            userMarker.bindPopup("Health: " + health + "%").openPopup();
+
+            map.setView(userPosition, 13);
+
+            if (circle != null && !circle.getBounds().contains(userPosition)) {
+                health -= 1;
+
+                if (health <= 0) {
+                    alert('You are dead!');
+                    stopTracking();
+                }
+            }
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("User denied the request for Geolocation.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Location information is unavailable.");
+                    break;
+                case error.TIMEOUT:
+                    alert("The request to get user location timed out.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("An unknown error occurred.");
+                    break;
+            }
+        }
+    </script>
+</body>
+
+</html>
